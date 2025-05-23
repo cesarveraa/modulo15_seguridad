@@ -32,7 +32,7 @@ export function MapaEstatico({ center, pois }: MapaEstaticoProps) {
 
         const map = new window.google.maps.Map(mapRef.current, {
           center,
-          zoom: 15,
+          zoom: 13,
           disableDefaultUI: true,
           zoomControl: false,
           streetViewControl: false,

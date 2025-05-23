@@ -58,9 +58,10 @@ export function MapaPerimetral({ id }: { id: string }) {
 
   const [oficina, setOficina] = useState<Oficina | null>(null);
   const [center, setCenter] = useState<google.maps.LatLngLiteral>({
-    lat: 4.6097,
-    lng: -74.0817,
+    lat: -16.5,
+    lng: -68.15,
   });
+
   const [markerPosition, setMarkerPosition] =
     useState<google.maps.LatLngLiteral | null>(null);
   const [pois, setPois] = useState<POI[]>([]);
@@ -265,9 +266,9 @@ export function MapaPerimetral({ id }: { id: string }) {
     const a =
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
       Math.cos(φ1) *
-        Math.cos(φ2) *
-        Math.sin(Δλ / 2) *
-        Math.sin(Δλ / 2);
+      Math.cos(φ2) *
+      Math.sin(Δλ / 2) *
+      Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
@@ -315,7 +316,7 @@ export function MapaPerimetral({ id }: { id: string }) {
                   <GoogleMap
                     mapContainerStyle={containerStyle}
                     center={center}
-                    zoom={15}
+                    zoom={13}
                     onClick={handleMapClick}
                     onLoad={onMapLoad}
                   >
@@ -415,7 +416,7 @@ export function MapaPerimetral({ id }: { id: string }) {
                   <GoogleMap
                     mapContainerStyle={containerStyle}
                     center={markerPosition || center}
-                    zoom={15}
+                    zoom={13}
                     onClick={handleMapClick}
                     onLoad={onMapLoad}
                   >

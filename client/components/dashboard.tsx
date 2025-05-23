@@ -31,8 +31,8 @@ export function Dashboard() {
     zona: "",
     aforo: 0,
     instalaciones: "",
-    lat: 4.6097, // Coordenadas por defecto (Bogotá)
-    lng: -74.0817,
+    lat: -16.5,
+    lng: -68.15,
   })
   const [dialogOpen, setDialogOpen] = useState(false)
   const router = useRouter()
@@ -79,8 +79,8 @@ export function Dashboard() {
       zona: "",
       aforo: 0,
       instalaciones: "",
-      lat: 4.6097,
-      lng: -74.0817,
+      lat: -16.5,
+      lng: -68.15,
     })
     setDialogOpen(false)
   }

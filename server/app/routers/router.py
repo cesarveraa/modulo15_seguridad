@@ -1,110 +1,10 @@
-import os
-import logging
-import json
-from typing import List, Optional
+from fastapi import APIRouter, Header, Request, HTTPException, Response
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel
-from dotenv import load_dotenv
-
-# --------------------------------------------------
-# Load environment
-# --------------------------------------------------
-load_dotenv()
-
-# --------------------------------------------------
-# Logging configuration
-# --------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
-logger = logging.getLogger(__name__)
-
-# --------------------------------------------------
-# OpenAI client (SambaNova)
-# --------------------------------------------------
-from openai import OpenAI
-client = OpenAI(
-    api_key=os.getenv("SAMBANOVA_API_KEY"),
-    base_url=os.getenv("SAMBANOVA_API_BASE", "https://api.sambanova.ai/v1"),
-)
-
-# --------------------------------------------------
-# Pydantic models
-# --------------------------------------------------
-class LatLng(BaseModel):
-    lat: float
-    lng: float
-
-class POIIn(BaseModel):
-    id: str
-    name: str
-    types: List[str]
-    lat: float
-    lng: float
-
-class ClassifyRequest(BaseModel):
-    pois: List[POIIn]
-    map_image_url: str
-
-class ClassifyResponse(BaseModel):
-    id: str
-    nombre: str
-    tipo: str
-    subtipo: Optional[str]
-
-class RiskRequest(BaseModel):
-    center: LatLng
-    pois: List[POIIn]
-    map_image_url: Optional[str]
-
-class RiskResponse(BaseModel):
-    riesgoTotal: str
-    riesgoResidual: str
-    riesgoGeografico: str
-    controlesExistentes: List[str]
-
-class GeneralAnalysisRequest(BaseModel):
-    descripcion: str
-    pois: List[POIIn]
-    image_base64: Optional[str]
-
-class GeneralAnalysisResponse(BaseModel):
-    summary: str
-
-class ControlsRequest(BaseModel):
-    pois: List[POIIn]
-    image_base64: Optional[str]
-
-class ControlsResponse(BaseModel):
-    controles: List[str]
-
-# --------------------------------------------------
-# FastAPI setup
-# --------------------------------------------------
-app = FastAPI(title="Servicio de Clasificación y Análisis de POIs", version="1.0.0")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    body = await request.body()
-    logger.error("Validation error: %s\nBody: %s", exc.errors(), body)
-    return JSONResponse(status_code=422, content={"detail": exc.errors()})
-
+router = APIRouter()
 # --------------------------------------------------
 # 1) /classify
 # --------------------------------------------------
-@app.post("/classify", response_model=List[ClassifyResponse])
+@router.post("/classify", response_model=List[ClassifyResponse])
 async def classify_pois(req: ClassifyRequest, request: Request):
     logger.info("Received classify request: %s", req.dict())
     places_text = "\n".join(
@@ -176,7 +76,7 @@ async def classify_pois(req: ClassifyRequest, request: Request):
 # --------------------------------------------------
 # 2) /analyze-risk (prompt JSON-only y logging/fallback)
 # --------------------------------------------------
-@app.post("/analyze-risk", response_model=RiskResponse)
+@router.post("/analyze-risk", response_model=RiskResponse)
 async def analyze_risk(req: RiskRequest):
     logger.info("Received risk analysis request: %s", req.dict())
 
@@ -267,7 +167,7 @@ def _simulate_risk(req: RiskRequest) -> RiskResponse:
 # --------------------------------------------------
 # 3) /general-analysis
 # --------------------------------------------------
-@app.post("/general-analysis", response_model=GeneralAnalysisResponse)
+@router.post("/general-analysis", response_model=GeneralAnalysisResponse)
 async def general_analysis(req: GeneralAnalysisRequest):
     logger.info("Received general analysis request: %s", req.dict())
     pois_text = "\n".join(f"- {p.name} @ [{p.lat:.6f},{p.lng:.6f}]" for p in req.pois)
@@ -293,7 +193,7 @@ async def general_analysis(req: GeneralAnalysisRequest):
 # --------------------------------------------------
 # 4) /controls-analysis (extracción robusta de JSON)
 # --------------------------------------------------
-@app.post("/controls-analysis", response_model=ControlsResponse)
+@router.post("/controls-analysis", response_model=ControlsResponse)
 async def controls_analysis(req: ControlsRequest):
     logger.info("Received controls analysis request: %s", req.dict())
 
